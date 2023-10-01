@@ -1,7 +1,8 @@
 import pandas as pd
 import streamlit as st
 import pickle
-# db = "refseq.pkl"
+from ete3 import NCBITaxa
+
 db = "refseq_v2.pkl"
 
 def sum_read_lengths_by_reference_and_taxid(df):
@@ -22,12 +23,13 @@ def estimate_coverage(genome_size, read_lengths):
     return coverage
 
 if __name__ == '__main__':
+    ncbi = NCBITaxa()
     # Streamlit app
     st.title('Add Genome Size Column')
 
     uploaded_file = st.file_uploader('Upload CSV File')
     if uploaded_file is not None:
-        _uploaded_file_name = uploaded_file.filename
+        _uploaded_file_name = uploaded_file.name.split('.')[0]
         df = pd.read_csv(uploaded_file)
         df['taxid'] = df['taxid'].astype(str)
         df = sum_read_lengths_by_reference_and_taxid(df)
@@ -48,11 +50,10 @@ if __name__ == '__main__':
         
         # Display table
         st.markdown('### Table with Estimated Genome Coverage by Reference')
-        st.write(df)
+        st.dataframe(df)
         # Download button for updated CSV file
-        st.markdown('### File with New Genome Size and Coverage Columns')
         st.download_button(
-            label='Download CSV',
+            label='💾 Download result',
             data=df.to_csv().encode('utf-8'),
             file_name=f'{_uploaded_file_name}_by_reference.csv',
             mime='text/csv',
@@ -62,10 +63,14 @@ if __name__ == '__main__':
         # Calculate the new coverage for each row based on the genome size and coverage, and sum it by taxid
         new_df['new_coverage'] = new_df.apply(lambda row: row['genome_size'] / new_df[new_df['taxid'] == row['taxid']]['genome_size'].sum() * row['coverage'], axis=1)
         new_df = new_df.groupby('taxid').agg({'new_coverage': 'sum', 'read_length_sum': 'sum'}).reset_index()
+        #  Add a new column to the new_df dataframe with the taxonomic names
+        new_df['taxa_name'] = new_df['taxid'].apply(lambda x: ncbi.get_taxid_translator([x]))
+        # Extract the value of the dictionary in the taxa_name column
+        new_df['taxa_name'] = new_df['taxa_name'].apply(lambda x: list(x.values())[0])
         st.markdown('### Table with Estimated Genome New Coverage by TaxID ###')
-        st.write(new_df)
+        st.dataframe(new_df)
         st.download_button(
-            label='Download CSV',
+        label='➡️ Download result',
             data=new_df.to_csv().encode('utf-8'),
             file_name=f'{_uploaded_file_name}_by_taxid.csv',
             mime='text/csv',

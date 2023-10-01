@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "st-estimate-coverage"
+version = "0.1.0"
+description = ""
+authors = ["thanhleviet <thanh.le-viet@quadram.ac.uk>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "st_estimate_coverage"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+streamlit = "^1.27.1"
+ete3 = "^3.1.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
