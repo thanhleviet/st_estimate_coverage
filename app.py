@@ -67,7 +67,7 @@ if __name__ == '__main__':
         new_df['new_coverage'] = new_df.apply(lambda row: row['genome_size'] / new_df[new_df['taxid'] == row['taxid']]['genome_size'].sum() * row['coverage'], axis=1)
         new_df = new_df.groupby('taxid').agg({'new_coverage': 'sum', 'read_length_sum': 'sum'}).reset_index()
         #  Add a new column to the new_df dataframe with the taxonomic names
-        new_df['taxa_name'] = new_df['taxid'].apply(lambda x: ncbi.get_taxid_translator([x]))
+        # new_df['taxa_name'] = new_df['taxid'].apply(lambda x: ncbi.get_taxid_translator([x]))
         # Extract the value of the dictionary in the taxa_name column
         # new_df['taxa_name'] = new_df['taxa_name'].apply(lambda x: list(x.values())[0])
         st.markdown('### Table with Estimated Genome New Coverage by TaxID ###')
