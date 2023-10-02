@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 import pickle
-from ete3 import NCBITaxa
+# from ete3 import NCBITaxa
 
 db = "refseq_v2.pkl"
 
@@ -23,11 +23,11 @@ def estimate_coverage(genome_size, read_lengths):
     return coverage
 
 if __name__ == '__main__':
-    ncbi = NCBITaxa()
+    # ncbi = NCBITaxa()
     # Streamlit app
     st.title('Add Genome Size Column')
 
-    uploaded_file = st.file_uploader('Upload CSV File')
+    uploaded_file = st.file_uploader('Upload **_reads.csv** files')
     if uploaded_file is not None:
         _uploaded_file_name = uploaded_file.name.split('.')[0]
         df = pd.read_csv(uploaded_file)
@@ -47,9 +47,12 @@ if __name__ == '__main__':
     
         # Calculate estimated genome coverage
         df['coverage'] = estimate_coverage(df['genome_size'], df['read_length_sum'])
-        
+        # Reorder columns
+        df = df.reindex(columns=['closet_reference', 'genome_size', 'taxid', 'coverage', 'read_length_sum', 'description'])
         # Display table
         st.markdown('### Table with Estimated Genome Coverage by Reference')
+        st.markdown('Coverage by taxID is calculated as follows:')
+        st.latex(r'coverage_{reference} = \frac{read\_length\_sum}{genome\_size}')
         st.dataframe(df)
         # Download button for updated CSV file
         st.download_button(
@@ -66,8 +69,10 @@ if __name__ == '__main__':
         #  Add a new column to the new_df dataframe with the taxonomic names
         new_df['taxa_name'] = new_df['taxid'].apply(lambda x: ncbi.get_taxid_translator([x]))
         # Extract the value of the dictionary in the taxa_name column
-        new_df['taxa_name'] = new_df['taxa_name'].apply(lambda x: list(x.values())[0])
+        # new_df['taxa_name'] = new_df['taxa_name'].apply(lambda x: list(x.values())[0])
         st.markdown('### Table with Estimated Genome New Coverage by TaxID ###')
+        st.markdown('Coverage by taxID is calculated as follows:')
+        st.latex(r'coverage_{taxid} = \sum_{i}^{n}[\frac{genome_{taxID[i]}}{\sum_{i}^{n}genome_{taxID}[i]}*coverage_{reference}{[i]}]')
         st.dataframe(new_df)
         st.download_button(
         label='➡️ Download result',
