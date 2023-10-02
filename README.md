@@ -2,6 +2,7 @@
 
 #### Streamlit cloud
 
+See https://estimate-coverage.streamlit.app/
 #### Local run
 Requires: `python >=3.10` and [poetry](https://python-poetry.org/)
 ```
