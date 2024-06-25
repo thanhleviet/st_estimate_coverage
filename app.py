@@ -36,10 +36,10 @@ if __name__ == '__main__':
         # Load genome size dict
         with open(db, 'rb') as f:
             genome_dict = pickle.load(f)
-            
+        print(df)
         # Create new column using dict
         for col in ['genome_size', 'description']:
-            df[col] = df['closet_reference'].map(genome_dict).map(lambda x: x[col])
+            df[col] = df['closet_reference'].map(genome_dict).map(lambda x: x.get(col) if isinstance(x, dict) else 0)
         
         # df['genome_size'] = df['closet_reference'].map(genome_dict).map(lambda x: x['genome_size'])
         # df['description'] = df['closet_reference'].map(genome_dict).map(lambda x: x['description'])
@@ -66,10 +66,12 @@ if __name__ == '__main__':
         # Calculate the new coverage for each row based on the genome size and coverage, and sum it by taxid
         new_df['new_coverage'] = new_df.apply(lambda row: row['genome_size'] / new_df[new_df['taxid'] == row['taxid']]['genome_size'].sum() * row['coverage'], axis=1)
         new_df = new_df.groupby('taxid').agg({'new_coverage': 'sum', 'read_length_sum': 'sum'}).reset_index()
+        
         #  Add a new column to the new_df dataframe with the taxonomic names
         # new_df['taxa_name'] = new_df['taxid'].apply(lambda x: ncbi.get_taxid_translator([x]))
         # Extract the value of the dictionary in the taxa_name column
         # new_df['taxa_name'] = new_df['taxa_name'].apply(lambda x: list(x.values())[0])
+        
         st.markdown('### Table with Estimated Genome New Coverage by TaxID ###')
         st.markdown('Coverage by taxID is calculated as follows:')
         st.latex(r'coverage_{taxid} = \sum_{i}^{n}[\frac{genome_{taxID[i]}}{\sum_{i}^{n}genome_{taxID}[i]}*coverage_{reference}{[i]}]')
